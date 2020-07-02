@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from geolucidate.functions import _cleanup, _convert
+from geolucidate.functions import _cleanup, _normalize_string
 from geolucidate.parser import parser_re
 
 from nose.tools import eq_
@@ -68,8 +68,10 @@ def test_parser():
         ("493616N 1221258W",  ['N', '49', '36', '16', 'W', '122','12', '58']),
         #If the a period is used to separate the degrees and minutes, _and_ the 'seconds' value
         #is only two digits, we now treat it as a proper seconds value rather than a decimal fraction.
-        ("49.36.16N 122.12.58W", ['N', '49', '36', '16', 'W', '122','12', '58'])
-        ]
+        ("49.36.16N 122.12.58W", ['N', '49', '36', '16', 'W', '122','12', '58']),
+        # Strings with Prime and Double Prime Characters
+        ("43°44′30″N 79°22′24″W", ['N', '43', '44', '30', 'W', '79', '22', '24']),
+    ]
 
     for test in values:
         (coord_string, expected) = test
@@ -77,7 +79,8 @@ def test_parser():
 
 
 def check_parser(coord_string, expected):
-    match = parser_re.search(coord_string)
+    normalized = _normalize_string(coord_string)
+    match = parser_re.search(normalized)
     assert match
     result = _cleanup(match.groupdict())
     eq_(result, expected)
