@@ -85,7 +85,7 @@ class MapLink(object):
 
         '''
 
-        return link_generator(baseurl + urlencode(params.items()),
+        return link_generator(baseurl + urlencode(params),
                               self.original_string,
                               u"{0} ({1})".format(self.original_string,
                                                   self.coordinates(", ")))
