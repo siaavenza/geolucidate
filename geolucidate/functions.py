@@ -1,12 +1,26 @@
 # -*- coding: utf-8 -*-
+import re
 from decimal import Decimal, setcontext, ExtendedContext
 
 from geolucidate.parser import parser_re
 from geolucidate.links.google import google_maps_link
 from geolucidate.links.tools import MapLink
+from geolucidate.constants import MINUTE_CHARACTERS_RE, SECOND_CHARACTERS_RE
 
 
 setcontext(ExtendedContext)
+
+
+def _normalize_string(string):
+    """ Normalize passed in string before breaking it apart
+
+    Convert all:
+    - forms of single quotes and prime characters to `'`
+    - forms of double quotes and double prime characters to `"`
+    """
+    string = re.sub(MINUTE_CHARACTERS_RE, "'", string)
+    string = re.sub(SECOND_CHARACTERS_RE, '"', string)
+    return string
 
 
 def _cleanup(parts):
@@ -130,6 +144,7 @@ def replace(string, sub_function=google_maps_link()):
         (latitude, longitude) = _convert(*_cleanup(match.groupdict()))
         return sub_function(MapLink(original_string, latitude, longitude))
 
+    string = _normalize_string(string)
     return parser_re.sub(do_replace, string)
 
 
@@ -161,6 +176,7 @@ def get_replacements(string, sub_function=google_maps_link()):
     """
 
     substitutions = {}
+    string = _normalize_string(string)
     matches = parser_re.finditer(string)
 
     for match in matches:
