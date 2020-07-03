@@ -36,5 +36,5 @@ SECOND_CHARACTERS = {
 
 # Use above dicts to generate RegEx character group string
 # Example Output: MINUTE_CHARACTERS_RE >> "[‘’❛❜‛′ʹ‵]"
-MINUTE_CHARACTERS_RE = re.escape('[{}]'.format(''.join(MINUTE_CHARACTERS.values())))
-SECOND_CHARACTERS_RE = re.escape('[{}]'.format(''.join(SECOND_CHARACTERS.values())))
+MINUTE_CHARACTERS_RE = '[{}]'.format(re.escape(''.join(MINUTE_CHARACTERS.values())))
+SECOND_CHARACTERS_RE = '[{}]'.format(re.escape(''.join(SECOND_CHARACTERS.values())))
