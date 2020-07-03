@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
-from decimal import Decimal, setcontext, ExtendedContext
+from decimal import Decimal, localcontext, ExtendedContext
 
 from geolucidate.parser import parser_re
 from geolucidate.links.google import google_maps_link
 from geolucidate.links.tools import MapLink
 from geolucidate.constants import MINUTE_CHARACTERS_RE, SECOND_CHARACTERS_RE
-
-
-setcontext(ExtendedContext)
 
 
 def _normalize_string(string):
@@ -78,44 +75,47 @@ def _convert(latdir, latdeg, latmin, latsec,
     ('50.459167', '-127.460833')
 
     """
-    if (latsec != '00' or longsec != '00'):
-        precision = Decimal('0.000001')
-    elif (latmin != '00' or longmin != '00'):
-        precision = Decimal('0.001')
-    else:
-        precision = Decimal('1')
 
-    latitude = Decimal(latdeg)
-    latmin = Decimal(latmin)
-    latsec = Decimal(latsec)
+    with localcontext(ExtendedContext) as ctx:
 
-    longitude = Decimal(longdeg)
-    longmin = Decimal(longmin)
-    longsec = Decimal(longsec)
+        if (latsec != '00' or longsec != '00'):
+            ctx.prec = Decimal('0.000001')
+        elif (latmin != '00' or longmin != '00'):
+            ctx.prec = Decimal('0.001')
+        else:
+            ctx.prec = Decimal('1')
 
-    if latsec > 59 or longsec > 59:
-        #Assume that 'seconds' greater than 59 are actually a decimal
-        #fraction of minutes
-        latitude += (latmin +
-                     (latsec / Decimal('100'))) / Decimal('60')
-        longitude += (longmin +
-                  (longsec / Decimal('100'))) / Decimal('60')
-    else:
-        latitude += (latmin +
-                     (latsec / Decimal('60'))) / Decimal('60')
-        longitude += (longmin +
-                      (longsec / Decimal('60'))) / Decimal('60')
+        latitude = Decimal(latdeg)
+        latmin = Decimal(latmin)
+        latsec = Decimal(latsec)
 
-    if latdir == 'S':
-        latitude *= Decimal('-1')
+        longitude = Decimal(longdeg)
+        longmin = Decimal(longmin)
+        longsec = Decimal(longsec)
 
-    if longdir == 'W':
-        longitude *= Decimal('-1')
+        if latsec > 59 or longsec > 59:
+            # Assume that 'seconds' greater than 59 are actually a decimal
+            # fraction of minutes
+            latitude += (latmin +
+                         (latsec / Decimal('100'))) / Decimal('60')
+            longitude += (longmin +
+                          (longsec / Decimal('100'))) / Decimal('60')
+        else:
+            latitude += (latmin +
+                         (latsec / Decimal('60'))) / Decimal('60')
+            longitude += (longmin +
+                          (longsec / Decimal('60'))) / Decimal('60')
 
-    lat_str = str(latitude.quantize(precision))
-    long_str = str(longitude.quantize(precision))
+        if latdir == 'S':
+            latitude *= Decimal('-1')
 
-    return (lat_str, long_str)
+        if longdir == 'W':
+            longitude *= Decimal('-1')
+
+        lat_str = str(latitude.quantize(ctx.prec))
+        long_str = str(longitude.quantize(ctx.prec))
+
+        return (lat_str, long_str)
 
 
 def replace(string, sub_function=google_maps_link()):
