@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from geolucidate.functions import _cleanup, _normalize_string
+from geolucidate.functions import _cleanup, _convert, _normalize_string
 from geolucidate.parser import parser_re
 
 from nose.tools import eq_
@@ -94,3 +94,14 @@ def test_false_positive():
 def check_false_positive(test):
     match = parser_re.search(test)
     eq_(match, None)
+
+
+def test_convert():
+    """
+    Test _convert takes noramlized degrees in array form and
+    returns it's Decimal form
+    """
+    normalized_degrees = ['S', '50', '30', '30', 'W', '50', '30', '30']
+    expected = ('-50.508333', '-50.508333')
+    result = _convert(*normalized_degrees)
+    eq_(result, expected)
